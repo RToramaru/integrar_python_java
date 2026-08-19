@@ -123,14 +123,7 @@ git clone https://github.com/RToramaru/integrar_python_java.git
 Entre no diretório:
 
 ```powershell
-cd REPOSITORIO
-```
-
-Exemplo fictício:
-
-```powershell
-git clone https://github.com/exemplo/integracao-python-java.git
-cd integracao-python-java
+cd integrar_python_java
 ```
 
 Se o projeto já estiver disponível localmente, esta etapa pode ser ignorada.
