@@ -1,4 +1,107 @@
-# Documentação --- Integração de Aplicação Python com JAR Java
+# Integração Python + Java
+
+## Build automático
+
+Este projeto é um empacotador genérico. A aplicação Python fictícia em
+`python/` serve somente para validar o fluxo; ao distribuir o software,
+substitua esse conteúdo pelo projeto Python que deverá ser incluído no JAR.
+Não é necessário alterar o código Java.
+
+O comando abaixo executa todo o processo no Windows:
+
+```powershell
+.\build.bat
+```
+
+O `build.py` cria `.venv` na raiz do projeto, instala as dependências de
+`python/requirements.txt` dentro desse ambiente e instala
+PyInstaller nesse ambiente, gera o `.exe`, executa o teste configurado, cria
+o ZIP, copia o ZIP e os metadados para `src/main/resources/`, executa Maven e
+coloca o JAR em `release/`.
+
+## Como fornecer sua aplicação Python
+
+1. Remova ou substitua os arquivos de exemplo dentro de `python/`.
+2. Coloque o seu entrypoint e o seu `requirements.txt` nessa pasta.
+3. Edite `config.json` com os nomes da sua aplicação e versão.
+4. Configure em `pyinstaller.data` os arquivos e diretórios extras que o seu
+         `.exe` precisa. Os caminhos de origem são relativos a `python/` e usam o
+         formato Windows `origem;destino`.
+5. Use `hidden_imports` para imports que o PyInstaller não detectar e
+         `collect_data` para dados fornecidos por pacotes Python.
+6. Liste em `required_paths` os arquivos ou diretórios que devem existir na
+         distribuição gerada.
+7. Execute `build.bat` e use o arquivo gerado em `release/`.
+
+Exemplo de configuração fictícia:
+
+```json
+{
+        "application": "minha_aplicacao",
+        "version": "2.0.0",
+        "python": {
+                "entrypoint": "app.py",
+                "requirements": "requirements.txt"
+        },
+        "pyinstaller": {
+                "name": "minha_aplicacao",
+                "mode": "onedir",
+                "windowed": false,
+                "data": ["recursos;recursos", "config/settings.json;config"],
+                "hidden_imports": ["modulo_exemplo"],
+                "collect_data": ["pacote_exemplo"],
+                "required_paths": ["recursos"]
+        },
+        "test": {
+                "enabled": true,
+                "arguments": ["--help"],
+                "timeoutSeconds": 30
+        }
+}
+```
+
+Os itens de `data` precisam existir antes do build. O `build.py` valida esses
+caminhos e interrompe o processo com uma mensagem clara quando algo falta.
+Para `onedir`, o ZIP contém a pasta completa da distribuição, incluindo o
+executável e seus arquivos internos. Para `onefile`, contém o executável único.
+
+## Execução do JAR
+
+O Java lê `python-app.properties`, gerado pelo build, para descobrir o ZIP e o
+executável. Ele extrai a aplicação, encaminha todos os argumentos recebidos e
+retorna o código de saída do Python:
+
+```powershell
+java -jar release/minha_aplicacao-2.0.0.jar processar --entrada "C:\dados\arquivo de exemplo.dat"
+```
+
+O computador de destino precisa apenas de Java 17 ou superior compatível. Python,
+pip, PyInstaller e Maven são necessários somente na máquina que cria o JAR.
+
+## Pré-requisitos do build
+
+- Windows;
+- JDK 17 ou superior configurado no `PATH`;
+- Python configurado no `PATH`;
+- pip disponível;
+- Maven configurado no `PATH`.
+
+O script não usa `shell=True`, aceita caminhos com espaços e não instala as
+dependências no Python global.
+
+## Limpeza e arquivos gerados
+
+Antes de cada build, `build/`, `dist/` e `release/` são recriados. O projeto
+original, `python/`, `src/`, `pom.xml` e `config.json` não são removidos.
+O ZIP antigo da mesma aplicação e os metadados gerados em `resources/` são
+substituídos automaticamente.
+
+As classes `PythonAppManager` e `InterfaceSeparada` preservam a extração,
+execução, encaminhamento de stdout/stderr e passagem literal dos argumentos.
+
+---
+
+## Documentação detalhada da integração
 
 ## 1. Objetivo
 

@@ -31,6 +31,13 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+dist/
+release/
+.venv/
+__pycache__/
+*.pyc
+src/main/resources/*.zip
+src/main/resources/python-app.properties
 
 ### VS Code ###
 .vscode/

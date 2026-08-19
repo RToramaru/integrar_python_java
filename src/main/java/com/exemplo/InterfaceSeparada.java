@@ -1,28 +1,27 @@
 package com.exemplo;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
+
 public class InterfaceSeparada {
 
-    private static PythonAppManager monitoracao;
+    private static final String CONFIG_RESOURCE = "python-app.properties";
+
+    private static PythonAppManager pythonApp;
 
     public static void main(String[] args) {
 
         try {
 
-            // ======================================================
-            // CONFIGURAÇÃO DA APLICAÇÃO PYTHON
-            // ======================================================
+            Properties config = carregarConfiguracao();
 
-            String nomeAplicacao =
-                    "deteccao";
-
-            String versao =
-                    "1.0.0";
-
-            String nomeArquivoZip =
-                    "deteccao.zip";
-
-            String nomeExecutavel =
-                    "deteccao.exe";
+            String nomeAplicacao = config.getProperty("application");
+            String versao = config.getProperty("version");
+            String nomeArquivoZip = config.getProperty("zip");
+            String nomeExecutavel = config.getProperty("executable");
 
 
             // ======================================================
@@ -43,7 +42,7 @@ public class InterfaceSeparada {
             // diretamente para o executável Python.
             // ======================================================
 
-            monitoracao =
+            pythonApp =
                     new PythonAppManager(
                             InterfaceSeparada.class,
                             nomeAplicacao,
@@ -58,7 +57,7 @@ public class InterfaceSeparada {
             // START
             // ======================================================
 
-            monitoracao.start();
+            pythonApp.start();
 
 
             System.out.println(
@@ -67,7 +66,7 @@ public class InterfaceSeparada {
 
 
             System.out.println(
-                    "PID: " + monitoracao.getPid()
+                    "PID: " + pythonApp.getPid()
             );
 
 
@@ -84,8 +83,8 @@ public class InterfaceSeparada {
                     .addShutdownHook(
                             new Thread(() -> {
 
-                                if (monitoracao != null) {
-                                    monitoracao.stop();
+                                                                if (pythonApp != null) {
+                                                                        pythonApp.stop();
                                 }
 
                             })
@@ -96,7 +95,7 @@ public class InterfaceSeparada {
             // AGUARDA PYTHON
             // ======================================================
 
-            while (monitoracao.estaExecutando()) {
+                        while (pythonApp.estaExecutando()) {
 
                 Thread.sleep(1000);
             }
@@ -106,6 +105,8 @@ public class InterfaceSeparada {
                     "Python encerrado."
             );
 
+            System.exit(pythonApp.getExitCode());
+
 
         } catch (Exception e) {
 
@@ -114,4 +115,32 @@ public class InterfaceSeparada {
             System.exit(1);
         }
     }
+
+        private static Properties carregarConfiguracao()
+                        throws IOException {
+
+                Properties config = new Properties();
+
+                try (InputStream input = InterfaceSeparada.class
+                                .getClassLoader()
+                                .getResourceAsStream(CONFIG_RESOURCE)) {
+
+                        if (input == null) {
+                                throw new IOException(
+                                                "Configuracao nao encontrada no JAR: "
+                                                                + CONFIG_RESOURCE);
+                        }
+
+                        config.load(new InputStreamReader(input, StandardCharsets.UTF_8));
+                }
+
+                for (String key : new String[]{"application", "version", "zip", "executable"}) {
+                        if (config.getProperty(key) == null
+                                        || config.getProperty(key).isBlank()) {
+                                throw new IOException("Configuracao sem valor obrigatorio: " + key);
+                        }
+                }
+
+                return config;
+        }
 }

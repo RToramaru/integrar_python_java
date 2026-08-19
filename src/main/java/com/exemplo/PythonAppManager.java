@@ -739,6 +739,16 @@ public class PythonAppManager {
     }
 
 
+        public synchronized int getExitCode() {
+
+                if (process == null || process.isAlive()) {
+                        return -1;
+                }
+
+                return process.exitValue();
+        }
+
+
     // ==============================================================
     // STOP
     // ==============================================================

@@ -1,0 +1,22 @@
+{
+  "application": "auto_labeler",
+  "version": "1.0.0",
+  "python": {
+    "entrypoint": "main.py",
+    "requirements": "requirements.txt"
+  },
+  "pyinstaller": {
+    "name": "auto_labeler",
+    "mode": "onedir",
+    "windowed": false,
+    "data": [],
+    "hidden_imports": [],
+    "collect_data": [],
+    "required_paths": []
+  },
+  "test": {
+    "enabled": true,
+    "arguments": ["rotular", "--help"],
+    "timeoutSeconds": 30
+  }
+}
